@@ -1,216 +1,179 @@
-# cat modbus.yaml
-# configuration entry for a TCP connection
-# com.victronenergy.grid    slave: 30
-# com.victronenergy.system  slave: 100
-# com.victronenergy.battery slave: 225
-
-# system :
- -  name: victron
-    retry_on_empty: true
-    retries: 10
+# Victron Configuration.  // If you require stats from your victron system you must have a Venus device installed as part of your Victron installation. This does not use VRM.This users MODBUS
+modbus:
+  - name: victron
     type: tcp
-    host: 192.168.1.7
+    host: 192.168.0.14
     port: 502
-# REMARK: scan_interval: <5 can cause troubles
     sensors:
-    - name: 'AC Consumption L1'
-      unit_of_measurement: "W"
-      slave: !secret com.victronenergy.system
-      address: 817
-      data_type: uint16
-      scan_interval: 3
-      device_class: power
-      
-    - name: 'Multiplus Grid power'
-      unit_of_measurement: "W"
-      slave: !secret com.victronenergy.system
-      address: 820
-      data_type: int16
-      scan_interval: 3
-      device_class: power
-      
-    - name: 'Multiplus Energy from Grid'
-      unit_of_measurement: "kWh"
-      slave: 30
-      address: 2603
-      data_type: uint16
-      scale: 0.01
-      precision: 1
-      scan_interval: 20
-      device_class: energy
-      state_class: total_increasing
-    - name: 'Multiplus Energy to Grid'
-      unit_of_measurement: "kWh"
-      slave: 30
-      address: 2606
-      data_type: uint16
-      scale: 0.01
-      precision: 1
-      scan_interval: 20
-      device_class: energy
-      state_class: total_increasing
-      
-    - name: 'Multiplus Solar power'
-      unit_of_measurement: "W"
-      slave: !secret com.victronenergy.system
-      address: 850
-      data_type: uint16
-      device_class: power
-      
-    - name: 'ESS Minimum SoC setpoint'
-      unit_of_measurement: "%"
-      data_type: uint16
-      slave: !secret com.victronenergy.system
-      address: 2901
-      scan_interval: 5
-      scale: 0.1
-      
-    - name: 'Maximum System Grid Feed In'
-      unit_of_measurement: "W"
-      data_type: uint16
-      slave: !secret com.victronenergy.system
-      address: 2706
-      scale: 0.01
-      device_class: power
-      # command_on: 4000
-      # command_off: 40
-      # verify_state: false
-#Battery
-    - name: 'Battery current'
-      unit_of_measurement: "A DC"
-      slave: !secret com.victronenergy.system
-      address: 841
-      data_type: int16
-      scale: 0.1
-      precision: 0
-      device_class: current
-      
-    - name: 'Battery Power System'
-      unit_of_measurement: "W"
-      slave: !secret com.victronenergy.system
-      address: 842
-      data_type: int16
-      scale: 1.0
-      precision: 0
-      device_class: power
+      - name: Battery Power
+        unit_of_measurement: W
+        slave: 100
+        address: 842
+      - name: "Battery SOC"   # // Best battery state of charge, determined from different measurements. read from //com.victronenergy.system
+        unit_of_measurement: "%"
+        scale: 1
+        precision: 1
+        slave: 100
+        address: 843
+      - name: "Battery Voltage"  # // Battery Voltage determined from different measurements. In order of preference: BMV-voltage (V), Multi-DC-Voltage (CV), MPPT-DC-Voltage (ScV), Charger voltage //com.victronenergy.system
+        unit_of_measurement: "V"
+        scale: 0.1
+        precision: 1
+        slave: 100
+        address: 840
 
-    - name: 'Charge Power System'
-      unit_of_measurement: "W"
-      slave: !secret com.victronenergy.system
-      address: 860
-      data_type: int16
-      scale: 10.0
-      precision: 0
-      device_class: power
-      
-    - name: 'Battery State of Charge System'
-      unit_of_measurement: "%"
-      slave: !secret com.victronenergy.system
-      address: 843
-      data_type: uint16
-      scale: 1
-      precision: 0
+      - name: "Battery Current" # // Postive: battery begin charged. Negative: battery being discharged read from //com.victronenergy.system
+        unit_of_measurement: "A"
+        scale: 0.1
+        precision: 1
+        slave: 100
+        address: 841
 
-      
-# Victron device over Modbus: Pylontch Battery slave: 225
-    - name: 'Battery current Pylon'
-      unit_of_measurement: "A DC"
-      slave: !secret com.victronenergy.battery
-      address: 261
-      data_type: int16
-      scale: 0.1
-      precision: 0
-      device_class: current
-      
-    - name: 'Battery State of Charge'
-      unit_of_measurement: "%"
-      slave: !secret com.victronenergy.battery
-      address: 266
-      data_type: int16
-      scale: 0.1
-      precision: 0
+      - name: "Battery Power" # // Postive: battery begin charged. Negative: battery being discharged read from //com.victronenergy.system
+        unit_of_measurement: "W"
+        scale: 1
+        precision: 1
+        slave: 100
+        address: 842
 
+      - name: "Battery State"
+        scale: 1
+        precision: 1
+        slave: 100
+        address: 844
 
-# Victron device over Modbus: vebus
-    - name: 'Multiplus Critical Loads'
-      unit_of_measurement: "W"
-      slave: !secret com.victronenergy.vebus
-      address: 23
-      data_type: int16
-      scan_interval: 2
-      scale: 10.0
-      precision: 0
-      device_class: power
-      
-    - name: 'Grid Voltage L1 in'
-      unit_of_measurement: "V AC"
-      slave: !secret com.victronenergy.vebus
-      address: 3
-      data_type: uint16
-      scale: 0.1
-      offset: 0
-      precision: 2
-      device_class: voltage
-      
-    - name: 'Multi Voltage L1 out'
-      unit_of_measurement: "V AC"
-      slave: !secret com.victronenergy.vebus
-      address: 15
-      data_type: uint16
-      scale: 0.1
-      offset: 0
-      precision: 2
-      device_class: voltage
-      
-      #  com.victronenergy.solarcharger slave: 247
-    - name: 'Solar Yield today'
-      unit_of_measurement: "kWh"
-      slave: !secret com.victronenergy.solarcharger
-      address: 784
-      data_type: uint16
-      scale: 0.1
-      device_class: energy
-      
-    - name: 'Solar Yield yesterday'
-      unit_of_measurement: "kWh"
-      slave: !secret com.victronenergy.solarcharger
-      address: 786
-      data_type: uint16
-      scale: 0.1
-      precision: 1
-      device_class: energy
-      
-    - name: "Multi Inverter State"
-      slave: !secret com.victronenergy.vebus
-      address: 31
-      data_type: uint16
-      # Inverter States, 0=Off;1=Low Power;2=Fault;3=Bulk;4=Absorption;5=Float;6=Storage;7=Equalize;8=Passthru;9=Inverting;10=Power assist;11=Power supply;252=Bulk protection
+      - name: "Battery Consumed Amphours"
+        unit_of_measurement: "Ah"
+        scale: -10
+        precision: 1
+        slave: 100
+        address: 845
 
-#Alarm Sensors
-    - name: 'Grid lost alarm'
-      slave: !secret com.victronenergy.vebus
-      address: 64
-      data_type: uint16
-      unit_of_measurement: "0=Ok;1=Warning"
-      
-    - name: 'Multi Temperature alarm'
-      slave: !secret com.victronenergy.vebus
-      address: 34
-      data_type: uint16
-      unit_of_measurement: "0=Ok;1=Warning;2=Alarm"
-      
-    - name: 'Multi Overload alarm'
-      slave: !secret com.victronenergy.vebus
-      address: 36
-      data_type: uint16
-      unit_of_measurement: "0=Ok;1=Warning;2=Alarm"
+      - name: "Battery Time to Go"  #\\ Special value: 0 = charging read from //com.victronenergy.system
+        unit_of_measurement: "s"
+        scale: 0.01
+        precision: 1
+        slave: 100
+        address: 846
 
-    - name: 'CCGX Relay Boiler'
-      slave: !secret com.victronenergy.system
-      address: 806
-      data_type: uint16
-      unit_of_measurement: "1=Off;0=Heat"
+      - name: "Eskom Grid"  #\\ Power supplied by Grid to system. read from //com.victronenergy.system
+        unit_of_measurement: "W"
+        scale: 1
+        precision: 1
+        slave: 100
+        address: 820
+        
+      - name: "AC Loads"  #\\ Power supplied by Inverter to loads. read from //com.victronenergy.system
+        unit_of_measurement: "W"
+        scale: 1
+        precision: 1
+        slave: 100
+        address: 817
 
+      - name: "Active input source"  #\\ Power supplied by Grid to system. read from //com.victronenergy.system
+        unit_of_measurement: "W"  # \\ 0=Not available;1=Grid;2=Generator;3=Eskom power;240=Not connected
+        scale: 1
+        precision: 1
+        slave: 100
+        address: 826
 
-#### Binary sensors (no binary in victron) ########
-#    binary_sensors:
+      - name: "Grid lost alarm" # \\ 0=Ok;2=Alarm
+        scale: 1
+        precision: 1
+        slave: 242
+        address: 64
+
+      - name: "VE.Bus state" # \\ 0=Off;1=Low Power;2=Fault;3=Bulk;4=Absorption;5=Float;6=Storage;7=Equalize;8=Passthru;9=Inverting;10=Power assist;11=Power supply;252=Bulk protection
+        scale: 1
+        precision: 1
+        slave: 242
+        address: 31
+
+      - name: "Battery Temperature" #
+        scale: 1
+        precision: 1
+        slave: 242
+        address: 61
+###############################################################
+#                                                             #
+#     Sensor Configurations - com.victronenergy.solarcharger  #
+#                                                             #
+###############################################################
+
+      - name: " Solar Charge state" # \\ 0=Off;2=Fault;3=Bulk;4=Absorption;5=Float;6=Storage;7=Equalize;11=Other (Hub-1);252=External control
+        scale: 1
+        precision: 1
+        slave: 243
+        address: 775
+
+      - name: " PV voltage" # \\ Not available if multiple VE.Can chargers are combined
+        unit_of_measurement: "V"
+        scale: 0.01
+        slave: 243
+        address: 776
+
+      - name: " PV Current" # \\ Not available if multiple VE.Can chargers are combined
+        unit_of_measurement: "A"
+        scale: 0.01
+        precision: 1
+        slave: 242
+        address: 61
+
+      - name: " PV Power" # \\ Not available if multiple VE.Can chargers are combined
+        unit_of_measurement: "W"
+        scale: 0.1
+        precision: 1
+        slave: 243
+        address: 789
+        
+      - name: " Yield today" # \\ Today's yield
+        unit_of_measurement: "kWh"
+        scale: 10
+        precision: 1
+        slave: 243
+        address: 784
+
+      - name: " Maximum charge power today" # \\ Today's maximum power
+        unit_of_measurement: "kWh"
+        scale: 1
+        precision: 1
+        slave: 243
+        address: 785
+
+      - name: " Yield Yesterday" # \\ Yesterdays's yield
+        unit_of_measurement: "kWh"
+        scale: 10
+        precision: 1
+        slave: 243
+        address: 786
+
+      - name: " Maximum charge power yesterday" # \\ Yesterdays's maximum power
+        unit_of_measurement: "kWh"
+        scale: 1
+        precision: 1
+        slave: 243
+        address: 785
+
+      - name: "Battery Temperature" # \\ Degrees celsius
+        scale: 10
+        precision: 1
+        slave: 243
+        address: 773
+
+###############################################################
+#                                                             #
+#     Sensor Configurations - com.victronenergy.tank          #
+#                                                             #
+###############################################################
+      - name: "Tank Capacity" # \\ Tank Informaiton Capacity
+        scale: 10000
+        precision: 1
+        slave: 22
+        address: 3001
+
+      - name: "Tank Levels" # \\ Tank Informaiton Levels
+        scale: 10000
+        precision: 1
+        slave: 22
+        address: 3004
+
